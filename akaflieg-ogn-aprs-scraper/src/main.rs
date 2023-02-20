@@ -7,7 +7,7 @@ use log::{info, warn, error};
 
 use tokio::net::TcpStream;
 use tokio::time::timeout;
-use tokio::sync::broadcast::{self, Sender};
+use tokio::sync::mpsc::{self, Sender};
 
 use influxdb2::Client;
 
@@ -34,8 +34,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // setup the return channel for APRS messages from the TCP stream;
     // write all arriving messages to influx.
-    let (tx, _) = broadcast::channel::<String>(32);
-    tokio::spawn(influx::write_aprs(client.clone(), "aprs", tx.clone()));
+    let (tx, rx) = mpsc::channel::<String>(32);
+    tokio::spawn(influx::write_aprs(client.clone(), "aprs", rx));
 
     // Main connection loop
     loop {
@@ -90,7 +90,7 @@ async fn read(stream: &TcpStream, aprs_tx: &Sender<String>) -> Result<(), Box<dy
             Ok(n) => {
                 let string_rep = util::format_for_display(&buf);
                 info!("(read {}) {}", n, string_rep);
-                aprs_tx.send(string_rep)?;
+                aprs_tx.send(string_rep).await?;
             }
             // we're not ready to read yet, wait another loop until we can read the next message.
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
