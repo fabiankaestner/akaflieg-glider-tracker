@@ -41,6 +41,10 @@ pub fn feet_to_m(feet: f32) -> f32 {
     feet * 0.3048
 }
 
+pub fn fpm_to_m_s(fpm: f32) -> f32 {
+    fpm * 0.3048 / 60.0
+}
+
 pub fn knots_to_m_s(knots: f32) -> f32 {
     knots * 463.0 / 900.0
 }
@@ -90,5 +94,10 @@ mod tests {
     #[test]
     fn turn_rate_to_rad_s_returns_accurate_result() {
         assert_eq!(turn_rate_to_rad_s(1.0), 0.05235988);
+    }
+
+    #[test]
+    fn fpm_to_m_s_returns_accurate_result() {
+        assert_eq!(fpm_to_m_s(1.0), 0.00508);
     }
 }
