@@ -60,13 +60,13 @@ mod tests {
                             degrees: 48,
                             minutes: 32,
                             seconds_decimal: 0.45,
-                            direction: 'N'
+                            direction: position::ParsedDirection::North
                         },
                         longitude: position::ParsedDegrees {
                             degrees: 8,
                             minutes: 3,
                             seconds_decimal: 0.85,
-                            direction: 'E'
+                            direction: position::ParsedDirection::East
                         },
                         heading: 206,
                         speed: 80,

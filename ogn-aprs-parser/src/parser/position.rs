@@ -10,12 +10,20 @@ use crate::parser::util::{
     two_digit_number,
 };
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum ParsedDirection {
+    North,
+    East,
+    South,
+    West,
+}
+
 #[derive(Debug, PartialEq)]
 pub struct ParsedDegrees {
     pub degrees: usize,
     pub minutes: usize,
     pub seconds_decimal: f32,
-    pub direction: char,
+    pub direction: ParsedDirection,
 }
 
 #[derive(Debug, PartialEq)]
@@ -40,7 +48,11 @@ fn parse_latitude(i: &str) -> IResult<&str, ParsedDegrees> {
             degrees: res.0,
             minutes: res.1,
             seconds_decimal: res.2,
-            direction: res.3,
+            direction: match res.3 {
+                'N' => ParsedDirection::North,
+                'S' => ParsedDirection::South,
+                _ => panic!("We got an invalid direction, how did we get here?"),
+            },
         },
     ))
 }
@@ -58,7 +70,11 @@ fn parse_longitude(i: &str) -> IResult<&str, ParsedDegrees> {
             degrees: res.0,
             minutes: res.1,
             seconds_decimal: res.2,
-            direction: res.3,
+            direction: match res.3 {
+                'W' => ParsedDirection::West,
+                'E' => ParsedDirection::East,
+                _ => panic!("We got an invalid direction, how did we get here?"),
+            },
         },
     ))
 }
@@ -105,7 +121,7 @@ mod tests {
                     degrees: 48,
                     minutes: 32,
                     seconds_decimal: 0.45,
-                    direction: 'N'
+                    direction: ParsedDirection::North
                 }
             ))
         );
@@ -122,7 +138,7 @@ mod tests {
                     degrees: 8,
                     minutes: 3,
                     seconds_decimal: 0.85,
-                    direction: 'E'
+                    direction: ParsedDirection::East
                 }
             ))
         );
@@ -141,13 +157,13 @@ mod tests {
                             degrees: 48,
                             minutes: 32,
                             seconds_decimal: 0.45,
-                            direction: 'N'
+                            direction: ParsedDirection::North
                         },
                         longitude: ParsedDegrees {
                             degrees: 8,
                             minutes: 3,
                             seconds_decimal: 0.85,
-                            direction: 'E'
+                            direction: ParsedDirection::East
                         },
                         heading: 206,
                         speed: 80,
@@ -157,5 +173,11 @@ mod tests {
                 )
             ))
         );
+    }
+
+    #[test]
+    fn parsing_position_and_type_doesnt_panic_on_invalid_direction() {
+        let test = "4832.45Y\\00803.85X^206/080/A=003503 !W75! ";
+        assert!(parse_position_and_type(test).is_err());
     }
 }
