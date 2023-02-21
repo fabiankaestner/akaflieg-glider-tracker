@@ -25,7 +25,7 @@ use rotation_rate::*;
 pub struct ParsedExtensions<'a> {
     pub position_precision: Option<ParsedPositionPrecision>,
     pub aircraft_id: Option<ParsedAircraftID<'a>>,
-    pub altitude_rate: Option<isize>,
+    pub altitude_rate: Option<i32>,
     pub rotation_rate: Option<f32>,
     pub reception: Option<f32>,
     pub bit_errors: Option<u32>,
@@ -37,7 +37,7 @@ pub struct ParsedExtensions<'a> {
 enum Extensions<'a> {
     PositionPrecision(ParsedPositionPrecision),
     AircraftID(ParsedAircraftID<'a>),
-    Rate(isize),
+    Rate(i32),
     Rot(f32),
     Reception(f32),
     Errors(u32),

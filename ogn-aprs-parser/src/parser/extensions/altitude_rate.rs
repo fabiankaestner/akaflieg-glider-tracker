@@ -8,10 +8,10 @@ use nom::{
 
 use crate::parser::util::float;
 
-pub fn parse_ext_altitude_rate(i: &str) -> IResult<&str, isize> {
+pub fn parse_ext_altitude_rate(i: &str) -> IResult<&str, i32> {
     delimited(
         multispace1,
-        map(float, |f: f32| f.round() as isize),
+        map(float, |f: f32| f.round() as i32),
         tag("fpm"),
     )(i)
 }
