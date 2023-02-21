@@ -1,9 +1,11 @@
 use nom::{
-    bytes::complete::{take, take_until, take_while},
-    character::complete::{char, one_of},
-    character::is_digit,
-    combinator::map_res,
-    sequence::{pair, preceded, terminated, tuple},
+    //    branch::alt,
+    //    multi::many0,
+    bytes::complete::{tag, take, take_until},
+    character::complete::{char, digit1, multispace1, one_of},
+    combinator::{map, map_res},
+    number::complete::float,
+    sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
 };
 
@@ -19,12 +21,28 @@ pub fn aprs_type(i: &str) -> IResult<&str, char> {
     one_of(">/")(i)
 }
 
+pub fn n_digit_number(i: &str) -> IResult<&str, usize> {
+    map_res(digit1, |s: &str| s.parse::<usize>())(i)
+}
+
+pub fn single_digit_number(i: &str) -> IResult<&str, usize> {
+    map_res(take(1 as usize), |s: &str| s.parse::<usize>())(i)
+}
+
 pub fn two_digit_number(i: &str) -> IResult<&str, usize> {
     map_res(take(2 as usize), |s: &str| s.parse::<usize>())(i)
 }
 
 pub fn three_digit_number(i: &str) -> IResult<&str, usize> {
     map_res(take(3 as usize), |s: &str| s.parse::<usize>())(i)
+}
+
+pub fn six_digit_number(i: &str) -> IResult<&str, usize> {
+    map_res(take(6 as usize), |s: &str| s.parse::<usize>())(i)
+}
+
+pub fn three_digit_number_slash_terminated(i: &str) -> IResult<&str, usize> {
+    terminated(three_digit_number, char('/'))(i)
 }
 
 pub fn two_digit_decimal(i: &str) -> IResult<&str, f32> {
@@ -60,7 +78,7 @@ pub fn time(i: &str) -> IResult<&str, ParsedTime> {
     ))
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ParsedDegrees {
     degrees: usize,
     minutes: usize,
@@ -104,27 +122,152 @@ pub fn longitude(i: &str) -> IResult<&str, ParsedDegrees> {
     ))
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ParsedPosition {
     latitude: ParsedDegrees,
     longitude: ParsedDegrees,
+    heading: usize,
+    speed: usize,
+    altitude: usize,
 }
 
 pub type ParsedSymbol<'a, 'b> = (&'a str, &'b str);
 
 pub fn position_and_type(i: &str) -> IResult<&str, (ParsedPosition, ParsedSymbol)> {
-    let (str, res) = tuple((latitude, take(1 as usize), longitude, take(1 as usize)))(i)?;
+    let (str, (lat, sym1, long, sym2, heading, speed, altitude)) = tuple((
+        latitude,
+        take(1 as usize),
+        longitude,
+        take(1 as usize),
+        three_digit_number_slash_terminated,
+        three_digit_number_slash_terminated,
+        preceded(tag("A="), six_digit_number),
+    ))(i)?;
     Ok((
         str,
         (
             ParsedPosition {
-                latitude: res.0,
-                longitude: res.2,
+                latitude: lat,
+                longitude: long,
+                heading,
+                speed,
+                altitude,
             },
-            (res.1, res.3),
+            (sym1, sym2),
         ),
     ))
 }
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ParsedPositionPrecision {
+    latitude: f32,
+    longitude: f32,
+}
+
+pub fn ext_position_precision(i: &str) -> IResult<&str, ParsedPositionPrecision> {
+    let (str, res) = delimited(
+        pair(multispace1, tag("!W")),
+        pair(single_digit_number, single_digit_number),
+        char('!'),
+    )(i)?;
+
+    Ok((
+        str,
+        ParsedPositionPrecision {
+            latitude: res.0 as f32 / 1000.0,
+            longitude: res.1 as f32 / 1000.0,
+        },
+    ))
+}
+#[derive(Debug, PartialEq, Clone)]
+pub struct ParsedAircraftID<'a> {
+    meta: usize,
+    id: &'a str,
+}
+
+pub fn ext_aircraft_id(i: &str) -> IResult<&str, ParsedAircraftID> {
+    let (str, res) = preceded(
+        pair(multispace1, tag("id")),
+        pair(
+            map_res(take(2 as usize), |hex| <usize>::from_str_radix(hex, 16)),
+            take(6 as usize),
+        ),
+    )(i)?;
+
+    Ok((
+        str,
+        ParsedAircraftID {
+            meta: res.0,
+            id: res.1,
+        },
+    ))
+}
+
+pub fn ext_rate(i: &str) -> IResult<&str, isize> {
+    delimited(
+        multispace1,
+        map(float, |f: f32| f.round() as isize),
+        tag("fpm"),
+    )(i)
+}
+
+pub fn ext_rot(i: &str) -> IResult<&str, f32> {
+    delimited(multispace1, float, tag("rot"))(i)
+}
+
+pub fn ext_reception(i: &str) -> IResult<&str, f32> {
+    delimited(multispace1, float, tag("dB"))(i)
+}
+
+pub fn ext_errors(i: &str) -> IResult<&str, usize> {
+    delimited(
+        multispace1,
+        map_res(digit1, |s: &str| s.parse::<usize>()),
+        tag("e"),
+    )(i)
+}
+
+pub fn ext_freq_offset(i: &str) -> IResult<&str, f32> {
+    delimited(multispace1, float, tag("kHz"))(i)
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ParsedGPSResolution {
+    horizontal: usize,
+    vertical: usize,
+}
+
+pub fn ext_gps_resolution(i: &str) -> IResult<&str, ParsedGPSResolution> {
+    let (str, res) = preceded(
+        pair(multispace1, tag("gps")),
+        tuple((n_digit_number, tag("x"), n_digit_number)),
+    )(i)?;
+    Ok((
+        str,
+        ParsedGPSResolution {
+            horizontal: res.0,
+            vertical: res.2,
+        },
+    ))
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ParsedExtensions<'a> {
+    position_precision: Option<ParsedPositionPrecision>,
+    aircraft_id: Option<ParsedAircraftID<'a>>,
+    rate: Option<isize>,
+    rot: Option<f32>,
+}
+
+//#[derive(Clone)]
+//enum Extensions<'a> {
+//    PositionPrecision(ParsedPositionPrecision),
+//    AircraftID(ParsedAircraftID<'a>)
+//}
+//
+//pub fn extensions(i: &str) -> IResult<&str, ParsedExtensions> {
+//    let (str, res) = many0(alt::<Extensions, _, _, _>((ext_position_precision, tag("bc"))))(i)?;
+//}
 
 #[cfg(test)]
 mod tests {
@@ -206,7 +349,6 @@ mod tests {
 
     #[test]
     fn longitude_works() {
-        let xxx = "ICA3E6DBA>APRS,qAS,Schwend:/112437h4832.45N\\00803.85E^206/080/A=003503 !W75! id213E6DBA -316fpm +0.1rot 9.8dB 6e -4.5kHz gps2x2";
         let test = "00803.85E^206";
         assert_eq!(
             longitude(test),
@@ -221,14 +363,20 @@ mod tests {
             ))
         );
     }
+
+    #[test]
+    fn three_digit_slash_terminated_works() {
+        let test = "206/08";
+        assert_eq!(three_digit_number_slash_terminated(test), Ok(("08", 206)));
+    }
+
     #[test]
     fn position_works() {
-        let xxx = "ICA3E6DBA>APRS,qAS,Schwend:/112437h4832.45N\\00803.85E^206/080/A=003503 !W75! id213E6DBA -316fpm +0.1rot 9.8dB 6e -4.5kHz gps2x2";
-        let test = "4832.45N\\00803.85E^206";
+        let test = "4832.45N\\00803.85E^206/080/A=003503 !W75! ";
         assert_eq!(
             position_and_type(test),
             Ok((
-                "206",
+                " !W75! ",
                 (
                     ParsedPosition {
                         latitude: ParsedDegrees {
@@ -242,11 +390,134 @@ mod tests {
                             minutes: 3,
                             seconds_decimal: 0.85,
                             direction: 'E'
-                        }
+                        },
+                        heading: 206,
+                        speed: 80,
+                        altitude: 3503
                     },
                     ("\\", "^")
                 )
             ))
         );
     }
+
+    #[test]
+    fn ext_position_precision_works() {
+        let test = " !W75! id21";
+        assert_eq!(
+            ext_position_precision(test),
+            Ok((
+                " id21",
+                ParsedPositionPrecision {
+                    latitude: 0.007,
+                    longitude: 0.005,
+                },
+            ))
+        );
+    }
+
+    #[test]
+    fn ext_aircraft_id_works() {
+        let test = " id213E6DBA -31";
+        assert_eq!(
+            ext_aircraft_id(test),
+            Ok((
+                " -31",
+                ParsedAircraftID {
+                    meta: 33,
+                    id: "3E6DBA"
+                },
+            ))
+        );
+    }
+
+    #[test]
+    fn ext_rate_works_positive() {
+        let test = " +316fpm +0.";
+        assert_eq!(ext_rate(test), Ok((" +0.", 316)));
+    }
+
+    #[test]
+    fn ext_rate_works_negative() {
+        let test = " -316fpm +0.";
+        assert_eq!(ext_rate(test), Ok((" +0.", -316)));
+    }
+
+    #[test]
+    fn ext_rot_works_positive() {
+        let test = " +0.1rot 9.";
+        assert_eq!(ext_rot(test), Ok((" 9.", 0.1)));
+    }
+
+    #[test]
+    fn ext_rot_works_negative() {
+        let test = " -0.5rot 9.";
+        assert_eq!(ext_rot(test), Ok((" 9.", -0.5)));
+    }
+
+    #[test]
+    fn ext_rot_works_zero() {
+        let test = " +0.0rot 9.";
+        assert_eq!(ext_rot(test), Ok((" 9.", 0.0)));
+    }
+    #[test]
+    fn ext_rot_works_zero_odd() {
+        let test = " +000rot 9.";
+        assert_eq!(ext_rot(test), Ok((" 9.", 0.0)));
+    }
+
+    #[test]
+    fn ext_rot_works_whole_numbers() {
+        let test = " +123rot 9.";
+        assert_eq!(ext_rot(test), Ok((" 9.", 123.0)));
+    }
+
+    #[test]
+    fn ext_reception_works() {
+        let test = " 9.8dB 6e";
+        assert_eq!(ext_reception(test), Ok((" 6e", 9.8)));
+    }
+
+    #[test]
+    fn ext_errors_works() {
+        let test = " 6e -4.5k";
+        assert_eq!(ext_errors(test), Ok((" -4.5k", 6)));
+    }
+
+    #[test]
+    fn ext_freq_offset_works() {
+        let test = " -4.5kHz gp";
+        assert_eq!(ext_freq_offset(test), Ok((" gp", -4.5)));
+    }
+
+    #[test]
+    fn ext_gps_resolution_works() {
+        let test = "   gps3x2";
+        assert_eq!(
+            ext_gps_resolution(test),
+            Ok((
+                "",
+                ParsedGPSResolution {
+                    horizontal: 3,
+                    vertical: 2
+                }
+            ))
+        );
+    }
+
+    //    #[test]
+    //    fn extensions_works() {
+    //        let xxx = "ICA3E6DBA>APRS,qAS,Schwend:/112437h4832.45N\\00803.85E^206/080/A=003503 !W75! id213E6DBA -316fpm +0.1rot 9.8dB 6e -4.5kHz gps2x2";
+    //        let test = " !W75! id213E6DBA -316fpm";
+    //        assert_eq!(
+    //            extensions(test),
+    //            Ok((
+    //                "",
+    //                ParsedGPSResolution {
+    //                    horizontal: 3,
+    //                    vertical: 2
+    //                }
+    //            ))
+    //        );
+    //    }
 }
