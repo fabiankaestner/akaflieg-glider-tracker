@@ -12,7 +12,7 @@ pub struct OGNObjectVelocity {
 
 impl OGNObjectVelocity {
     // expects speed in knots, altitude rate in feet per minute and rotation rate in half-turns per minute
-    pub fn new(speed: u32, altitude_rate: Option<u32>, rotation_rate: Option<f32>) -> Self {
+    pub fn new(speed: u32, altitude_rate: Option<i32>, rotation_rate: Option<f32>) -> Self {
         OGNObjectVelocity {
             horizontal: knots_to_m_s(speed as f32),
             vertical: match altitude_rate {
