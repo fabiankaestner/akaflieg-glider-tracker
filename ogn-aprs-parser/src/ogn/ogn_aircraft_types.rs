@@ -1,3 +1,5 @@
+use crate::parser::position::ParsedSymbol;
+
 pub enum AircraftType {
     Other,
     Glider,
@@ -45,7 +47,7 @@ impl AircraftType {
     // S, T, tttt, aa stand for 8 bits from most to least significant.
     // tttt: FLARM Aircraft Type
 
-    pub fn from_meta(meta: usize) -> AircraftType {
+    pub fn from_meta(meta: usize) -> Self {
         use AircraftType::*;
         let masked = (meta >> 2) & 0x0F;
         match masked {
@@ -87,5 +89,22 @@ impl AircraftType {
     //  "/'",  //  D = UAV              (drones, can become very common)
     //  "/z",  //  E = ground support   (ground vehicles at airfields)
     //  "\\n"  //  F = static object    (ground relay ?)
-    pub fn from_aprs_symbol() {}
+    pub fn from_aprs_symbol(symbol: ParsedSymbol) -> Self {
+        use AircraftType::*;
+
+        let concat = format!("{}{}", symbol.0, symbol.1);
+
+        match concat.as_str() {
+            // as this is not injective, we choose the first listed type.
+            "/z" => Other,
+            "/'" => Glider,
+            "/X" => Helicopter,
+            "/g" => Parachute,
+            "\\^" => PoweredAircraft,
+            "/^" => JetAircraft,
+            "/O" => Balloon,
+            "\\n" => StaticObject,
+            _ => Unknown,
+        }
+    }
 }
