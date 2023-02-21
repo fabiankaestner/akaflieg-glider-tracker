@@ -13,14 +13,14 @@ pub struct OGNObjectPosition {
 }
 
 impl OGNObjectPosition {
-    pub fn from(parsed: ParsedPosition, precision: Option<ParsedPositionPrecision>) -> Self {
+    pub fn from(parsed: &ParsedPosition, precision: Option<ParsedPositionPrecision>) -> Self {
         let p = if let Some(x) = precision {
             let mut new_parsed = parsed.clone();
             new_parsed.latitude.seconds_decimal = parsed.latitude.seconds_decimal + x.latitude;
             new_parsed.longitude.seconds_decimal = parsed.latitude.seconds_decimal + x.longitude;
             new_parsed
         } else {
-            parsed
+            parsed.clone()
         };
 
         let latitude = parsed_degrees_to_decimal(p.latitude);
