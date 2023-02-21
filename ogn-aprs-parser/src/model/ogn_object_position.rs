@@ -6,10 +6,10 @@ use crate::parser::{
 
 #[derive(Debug, PartialEq)]
 pub struct OGNObjectPosition {
-    latitude: f32,
-    longitude: f32,
-    heading: u32,
-    altitude: u32,
+    pub latitude: f32,
+    pub longitude: f32,
+    pub heading: u32,
+    pub altitude: u32,
 }
 
 impl OGNObjectPosition {

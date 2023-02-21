@@ -3,11 +3,11 @@ use crate::ogn::utils::{fpm_to_m_s, knots_to_m_s, turn_rate_to_rad_s};
 #[derive(Debug, PartialEq)]
 pub struct OGNObjectVelocity {
     // Velocity in m/s
-    horizontal: f32,
+    pub horizontal: f32,
     // Altitude rate m/s
-    vertical: Option<f32>,
+    pub vertical: Option<f32>,
     // Rotation in half-rotations/minute
-    rotation: Option<f32>,
+    pub rotation: Option<f32>,
 }
 
 impl OGNObjectVelocity {

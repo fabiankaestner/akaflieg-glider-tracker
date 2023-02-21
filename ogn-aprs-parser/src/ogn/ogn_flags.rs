@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq, Eq)]
 pub struct OGNFlags {
-    stealth_mode: bool,     // should never be true
-    no_tracking_mode: bool, // request from airplane not to be tracked
+    pub stealth_mode: bool,     // should never be true
+    pub no_tracking_mode: bool, // request from airplane not to be tracked
 }
 
 // taken from: http://wiki.glidernet.org/wiki:ogn-flavoured-aprs
