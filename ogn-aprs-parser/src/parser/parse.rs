@@ -1,3 +1,4 @@
+use anyhow::Result;
 use nom::{sequence::tuple, IResult};
 
 use crate::parser::*;
@@ -13,7 +14,12 @@ pub struct ParsedAPRSMessage<'a> {
     pub extensions: extensions::ParsedExtensions<'a>,
 }
 
-pub fn aircraft_status_message(i: &str) -> IResult<&str, ParsedAPRSMessage> {
+pub fn parse_str(i: &str) -> Result<ParsedAPRSMessage> {
+    let (_, result) = aircraft_status_message(i).map_err(|e| e.to_owned())?;
+    Ok(result)
+}
+
+fn aircraft_status_message(i: &str) -> IResult<&str, ParsedAPRSMessage> {
     let (str, (cs, pa, ty, ti, (pos, sym), ext)) = tuple((
         aprs::parse_callsign,
         aprs::parse_path,
