@@ -143,7 +143,7 @@ pub struct ParsedPosition {
     altitude: usize,
 }
 
-pub type ParsedSymbol<'a, 'b> = (&'a str, &'b str);
+pub type ParsedSymbol<'a> = (&'a str, &'a str);
 
 pub fn position_and_type(i: &str) -> IResult<&str, (ParsedPosition, ParsedSymbol)> {
     let (str, (lat, sym1, long, sym2, heading, speed, altitude)) = tuple((
@@ -317,6 +317,40 @@ pub fn extensions(i: &str) -> IResult<&str, ParsedExtensions> {
         }
     }
     Ok((str, ext))
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ParsedAPRSMessage<'a> {
+    callsign: &'a str,
+    path: &'a str,
+    aprs_type: char,
+    time: ParsedTime,
+    position: ParsedPosition,
+    symbol: ParsedSymbol<'a>,
+    extensions: ParsedExtensions<'a>,
+}
+
+pub fn aprs_message(i: &str) -> IResult<&str, ParsedAPRSMessage> {
+    let (str, (cs, pa, ty, ti, (pos, sym), ext)) = tuple((
+        callsign,
+        aprs_path,
+        aprs_type,
+        time,
+        position_and_type,
+        extensions,
+    ))(i)?;
+    Ok((
+        str,
+        ParsedAPRSMessage {
+            callsign: cs,
+            path: pa,
+            aprs_type: ty,
+            time: ti,
+            position: pos,
+            symbol: sym,
+            extensions: ext,
+        },
+    ))
 }
 
 #[cfg(test)]
@@ -668,6 +702,64 @@ mod tests {
                         vertical: 2
                     }),
                     unknown: vec!["test2", "23456"]
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn aprs_message_works() {
+        let test = "ICA3E6DBA>APRS,qAS,Schwend:/112437h4832.45N\\00803.85E^206/080/A=003503 !W75! id213E6DBA -316fpm +0.1rot 9.8dB 6e -4.5kHz gps2x2";
+        assert_eq!(
+            aprs_message(test),
+            Ok((
+                "",
+                ParsedAPRSMessage {
+                    callsign: "ICA3E6DBA",
+                    path: "APRS,qAS,Schwend",
+                    aprs_type: '/',
+                    time: ParsedTime {
+                        elements: (11, 24, 37),
+                        format: 'h'
+                    },
+                    position: ParsedPosition {
+                        latitude: ParsedDegrees {
+                            degrees: 48,
+                            minutes: 32,
+                            seconds_decimal: 0.45,
+                            direction: 'N'
+                        },
+                        longitude: ParsedDegrees {
+                            degrees: 8,
+                            minutes: 3,
+                            seconds_decimal: 0.85,
+                            direction: 'E'
+                        },
+                        heading: 206,
+                        speed: 80,
+                        altitude: 3503
+                    },
+                    symbol: ("\\", "^"),
+                    extensions: ParsedExtensions {
+                        position_precision: Some(ParsedPositionPrecision {
+                            latitude: 0.007,
+                            longitude: 0.005
+                        }),
+                        aircraft_id: Some(ParsedAircraftID {
+                            meta: 33,
+                            id: "3E6DBA"
+                        }),
+                        rate: Some(-316),
+                        rot: Some(0.1),
+                        reception: Some(9.8),
+                        errors: Some(6),
+                        freq_offset: Some(-4.5),
+                        gps_resolution: Some(ParsedGPSResolution {
+                            horizontal: 2,
+                            vertical: 2
+                        }),
+                        unknown: vec![]
+                    }
                 }
             ))
         );
