@@ -4,7 +4,7 @@ use crate::parser::util::two_digit_number;
 
 #[derive(Debug, PartialEq)]
 pub struct ParsedTime {
-    pub elements: (usize, usize, usize),
+    pub elements: (u32, u32, u32),
     pub format: char,
 }
 

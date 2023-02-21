@@ -6,10 +6,10 @@ use nom::{
     IResult,
 };
 
-pub fn parse_ext_bit_errors(i: &str) -> IResult<&str, usize> {
+pub fn parse_ext_bit_errors(i: &str) -> IResult<&str, u32> {
     delimited(
         multispace1,
-        map_res(digit1, |s: &str| s.parse::<usize>()),
+        map_res(digit1, |s: &str| s.parse::<u32>()),
         tag("e"),
     )(i)
 }

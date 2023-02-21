@@ -9,7 +9,7 @@ pub enum AddressType {
 impl AddressType {
     // from: http://wiki.glidernet.org/wiki:ogn-flavoured-aprs
     // Address Type: 0b00 -> Unkown, 0b01 -> ICAO, 0b10 -> Flarm, 0b11 -> OGN tracker
-    pub fn from(meta: usize) -> Self {
+    pub fn from(meta: u32) -> Self {
         let masked = meta & 0b0011;
         match masked {
             0 => AddressType::Unknown,

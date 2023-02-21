@@ -9,8 +9,8 @@ use crate::parser::util::n_digit_number;
 
 #[derive(Debug, PartialEq)]
 pub struct ParsedGPSResolution {
-    pub horizontal: usize,
-    pub vertical: usize,
+    pub horizontal: u32,
+    pub vertical: u32,
 }
 
 pub fn parse_ext_gps_resolution(i: &str) -> IResult<&str, ParsedGPSResolution> {

@@ -6,27 +6,27 @@ use nom::{
     IResult,
 };
 
-pub fn n_digit_number(i: &str) -> IResult<&str, usize> {
-    map_res(digit1, |s: &str| s.parse::<usize>())(i)
+pub fn n_digit_number(i: &str) -> IResult<&str, u32> {
+    map_res(digit1, |s: &str| s.parse::<u32>())(i)
 }
 
-pub fn single_digit_number(i: &str) -> IResult<&str, usize> {
-    map_res(take(1 as usize), |s: &str| s.parse::<usize>())(i)
+pub fn single_digit_number(i: &str) -> IResult<&str, u32> {
+    map_res(take(1 as u32), |s: &str| s.parse::<u32>())(i)
 }
 
-pub fn two_digit_number(i: &str) -> IResult<&str, usize> {
-    map_res(take(2 as usize), |s: &str| s.parse::<usize>())(i)
+pub fn two_digit_number(i: &str) -> IResult<&str, u32> {
+    map_res(take(2 as u32), |s: &str| s.parse::<u32>())(i)
 }
 
-pub fn three_digit_number(i: &str) -> IResult<&str, usize> {
-    map_res(take(3 as usize), |s: &str| s.parse::<usize>())(i)
+pub fn three_digit_number(i: &str) -> IResult<&str, u32> {
+    map_res(take(3 as u32), |s: &str| s.parse::<u32>())(i)
 }
 
-pub fn six_digit_number(i: &str) -> IResult<&str, usize> {
-    map_res(take(6 as usize), |s: &str| s.parse::<usize>())(i)
+pub fn six_digit_number(i: &str) -> IResult<&str, u32> {
+    map_res(take(6 as u32), |s: &str| s.parse::<u32>())(i)
 }
 
-pub fn three_digit_number_slash_terminated(i: &str) -> IResult<&str, usize> {
+pub fn three_digit_number_slash_terminated(i: &str) -> IResult<&str, u32> {
     terminated(three_digit_number, char('/'))(i)
 }
 
@@ -34,7 +34,7 @@ pub fn two_digit_decimal(i: &str) -> IResult<&str, f32> {
     preceded(
         char('.'),
         map_res(
-            take(2 as usize),
+            take(2 as u32),
             |s: &str| -> Result<f32, std::num::ParseFloatError> { Ok(s.parse::<f32>()? / 100.0) },
         ),
     )(i)

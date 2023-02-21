@@ -8,7 +8,7 @@ use nom::{
 
 #[derive(Debug, PartialEq)]
 pub struct ParsedAircraftID<'a> {
-    pub meta: usize,
+    pub meta: u32,
     pub id: &'a str,
 }
 
@@ -16,8 +16,8 @@ pub fn parse_ext_aircraft_id(i: &str) -> IResult<&str, ParsedAircraftID> {
     let (str, res) = preceded(
         pair(multispace1, tag("id")),
         pair(
-            map_res(take(2 as usize), |hex| <usize>::from_str_radix(hex, 16)),
-            take(6 as usize),
+            map_res(take(2 as u32), |hex| <u32>::from_str_radix(hex, 16)),
+            take(6 as u32),
         ),
     )(i)?;
 

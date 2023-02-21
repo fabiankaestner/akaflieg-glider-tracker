@@ -8,8 +8,8 @@ use crate::parser::{
 pub struct OGNObjectPosition {
     latitude: f32,
     longitude: f32,
-    heading: usize,
-    altitude: usize,
+    heading: u32,
+    altitude: u32,
 }
 
 impl OGNObjectPosition {

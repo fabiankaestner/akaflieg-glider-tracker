@@ -48,7 +48,7 @@ impl AircraftType {
     // S, T, tttt, aa stand for 8 bits from most to least significant.
     // tttt: FLARM Aircraft Type
 
-    pub fn from_meta(meta: usize) -> Self {
+    pub fn from_meta(meta: u32) -> Self {
         use AircraftType::*;
         let masked = (meta >> 2) & 0x0F;
         match masked {

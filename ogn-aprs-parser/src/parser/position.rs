@@ -20,8 +20,8 @@ pub enum ParsedDirection {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ParsedDegrees {
-    pub degrees: usize,
-    pub minutes: usize,
+    pub degrees: u32,
+    pub minutes: u32,
     pub seconds_decimal: f32,
     pub direction: ParsedDirection,
 }
@@ -30,9 +30,9 @@ pub struct ParsedDegrees {
 pub struct ParsedPosition {
     pub latitude: ParsedDegrees,
     pub longitude: ParsedDegrees,
-    pub heading: usize,
-    pub speed: usize,
-    pub altitude: usize,
+    pub heading: u32,
+    pub speed: u32,
+    pub altitude: u32,
 }
 
 fn parse_latitude(i: &str) -> IResult<&str, ParsedDegrees> {
@@ -84,9 +84,9 @@ pub type ParsedSymbol<'a> = (&'a str, &'a str);
 pub fn parse_position_and_type(i: &str) -> IResult<&str, (ParsedPosition, ParsedSymbol)> {
     let (str, (lat, sym1, long, sym2, heading, speed, altitude)) = tuple((
         parse_latitude,
-        take(1 as usize),
+        take(1 as u32),
         parse_longitude,
-        take(1 as usize),
+        take(1 as u32),
         three_digit_number_slash_terminated,
         three_digit_number_slash_terminated,
         preceded(tag("A="), six_digit_number),

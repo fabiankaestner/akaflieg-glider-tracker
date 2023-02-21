@@ -18,7 +18,7 @@ pub struct OGNFlags {
 // 0b10 = 2: address type ("FLARM")
 // DF0A52: sender address
 impl OGNFlags {
-    pub fn from(meta: usize) -> Self {
+    pub fn from(meta: u32) -> Self {
         let no_tracking_mode = ((meta >> 6) & 0b0001) != 0;
         let stealth_mode = ((meta >> 7) & 0b0001) != 0;
         OGNFlags {
