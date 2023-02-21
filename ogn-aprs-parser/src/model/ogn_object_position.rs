@@ -1,15 +1,14 @@
-use crate::ogn::utils::parsed_degrees_to_decimal;
+use crate::ogn::utils::{feet_to_m, parsed_degrees_to_decimal};
 use crate::parser::{
-    extensions::position_precision::ParsedPositionPrecision,
-    position::ParsedPosition,
+    extensions::position_precision::ParsedPositionPrecision, position::ParsedPosition,
 };
 
 #[derive(Debug, PartialEq)]
 pub struct OGNObjectPosition {
     pub latitude: f32,
     pub longitude: f32,
-    pub heading: u32,
-    pub altitude: u32,
+    pub heading: f32,
+    pub altitude: f32,
 }
 
 impl OGNObjectPosition {
@@ -29,8 +28,8 @@ impl OGNObjectPosition {
         OGNObjectPosition {
             latitude,
             longitude,
-            heading: p.heading,
-            altitude: p.altitude,
+            heading: p.heading as f32,
+            altitude: feet_to_m(p.altitude as f32),
         }
     }
 }
