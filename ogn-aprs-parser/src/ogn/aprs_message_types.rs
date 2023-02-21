@@ -2,6 +2,7 @@
 pub enum APRSMessageType {
     Status,
     PositionWithTimestamp,
+    Unknown,
 }
 
 impl APRSMessageType {
@@ -10,6 +11,7 @@ impl APRSMessageType {
         match c {
             '>' => Status,
             '/' => PositionWithTimestamp,
+            _ => Unknown
         }
     }
 }
