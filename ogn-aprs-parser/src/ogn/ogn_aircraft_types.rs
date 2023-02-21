@@ -1,5 +1,6 @@
 use crate::parser::position::ParsedSymbol;
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum AircraftType {
     Other,
     Glider,
@@ -106,5 +107,34 @@ impl AircraftType {
             "\\n" => StaticObject,
             _ => Unknown,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn aircraft_type_gets_decoded_from_meta() {
+        let glider = 0b11000100;
+        let powered = 0b01100010;
+        let balloon = 0b01101111;
+        assert_eq!(AircraftType::from_meta(glider), AircraftType::Glider);
+        assert_eq!(
+            AircraftType::from_meta(powered),
+            AircraftType::PoweredAircraft
+        );
+        assert_eq!(AircraftType::from_meta(balloon), AircraftType::Balloon);
+    }
+
+    #[test]
+    fn aircraft_type_gets_decoded_from_symbol() {
+        let glider = ("/", "'");
+        let powered = ("\\", "^");
+        assert_eq!(AircraftType::from_aprs_symbol(glider), AircraftType::Glider);
+        assert_eq!(
+            AircraftType::from_aprs_symbol(powered),
+            AircraftType::PoweredAircraft
+        );
     }
 }
