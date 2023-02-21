@@ -10,7 +10,7 @@ use crate::parser::util::{
     two_digit_number,
 };
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ParsedDirection {
     North,
     East,
@@ -18,7 +18,7 @@ pub enum ParsedDirection {
     West,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ParsedDegrees {
     pub degrees: usize,
     pub minutes: usize,
@@ -26,7 +26,7 @@ pub struct ParsedDegrees {
     pub direction: ParsedDirection,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ParsedPosition {
     pub latitude: ParsedDegrees,
     pub longitude: ParsedDegrees,
