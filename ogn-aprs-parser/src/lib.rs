@@ -1,10 +1,9 @@
 use nom::{
-    //    branch::alt,
-    //    multi::many0,
-    bytes::complete::{tag, take, take_until},
+    branch::alt,
+    bytes::complete::{is_not, tag, take, take_until},
     character::complete::{char, digit1, multispace1, one_of},
-    combinator::{map, map_res},
-    number::complete::float,
+    combinator::{map, map_res, opt},
+    multi::many0,
     sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
 };
@@ -43,6 +42,19 @@ pub fn six_digit_number(i: &str) -> IResult<&str, usize> {
 
 pub fn three_digit_number_slash_terminated(i: &str) -> IResult<&str, usize> {
     terminated(three_digit_number, char('/'))(i)
+}
+
+pub fn float(i: &str) -> IResult<&str, f32> {
+    map_res(
+        tuple((opt(one_of("+-")), digit1, opt(pair(char('.'), digit1)))),
+        |result| {
+            let sign = result.0.unwrap_or('+');
+            let decimal = result.2.unwrap_or(('.', "0"));
+            let concat = format!("{}{}{}{}", sign, result.1, decimal.0, decimal.1);
+
+            concat.parse::<f32>()
+        },
+    )(i)
 }
 
 pub fn two_digit_decimal(i: &str) -> IResult<&str, f32> {
@@ -251,23 +263,61 @@ pub fn ext_gps_resolution(i: &str) -> IResult<&str, ParsedGPSResolution> {
     ))
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct ParsedExtensions<'a> {
     position_precision: Option<ParsedPositionPrecision>,
     aircraft_id: Option<ParsedAircraftID<'a>>,
     rate: Option<isize>,
     rot: Option<f32>,
+    reception: Option<f32>,
+    errors: Option<usize>,
+    freq_offset: Option<f32>,
+    gps_resolution: Option<ParsedGPSResolution>,
+    unknown: Vec<&'a str>,
 }
 
-//#[derive(Clone)]
-//enum Extensions<'a> {
-//    PositionPrecision(ParsedPositionPrecision),
-//    AircraftID(ParsedAircraftID<'a>)
-//}
-//
-//pub fn extensions(i: &str) -> IResult<&str, ParsedExtensions> {
-//    let (str, res) = many0(alt::<Extensions, _, _, _>((ext_position_precision, tag("bc"))))(i)?;
-//}
+enum Extensions<'a> {
+    PositionPrecision(ParsedPositionPrecision),
+    AircraftID(ParsedAircraftID<'a>),
+    Rate(isize),
+    Rot(f32),
+    Reception(f32),
+    Errors(usize),
+    FreqOffset(f32),
+    GPSResolution(ParsedGPSResolution),
+    Unknown(&'a str),
+}
+
+pub fn extensions(i: &str) -> IResult<&str, ParsedExtensions> {
+    use Extensions::*;
+    let (str, res) = many0(alt((
+        map(ext_position_precision, PositionPrecision),
+        map(ext_aircraft_id, AircraftID),
+        map(ext_rate, Rate),
+        map(ext_rot, Rot),
+        map(ext_reception, Reception),
+        map(ext_errors, Errors),
+        map(ext_freq_offset, FreqOffset),
+        map(ext_gps_resolution, GPSResolution),
+        map(preceded(multispace1, is_not(" ")), Unknown),
+    )))(i)?;
+
+    let mut ext = ParsedExtensions::default();
+    for extension in res {
+        match extension {
+            PositionPrecision(x) => ext.position_precision = Some(x),
+            AircraftID(x) => ext.aircraft_id = Some(x),
+            Rate(x) => ext.rate = Some(x),
+            Rot(x) => ext.rot = Some(x),
+            Reception(x) => ext.reception = Some(x),
+            Errors(x) => ext.errors = Some(x),
+            FreqOffset(x) => ext.freq_offset = Some(x),
+            GPSResolution(x) => ext.gps_resolution = Some(x),
+            Unknown(x) => ext.unknown.push(x),
+        }
+    }
+    Ok((str, ext))
+}
 
 #[cfg(test)]
 mod tests {
@@ -505,19 +555,121 @@ mod tests {
         );
     }
 
-    //    #[test]
-    //    fn extensions_works() {
-    //        let xxx = "ICA3E6DBA>APRS,qAS,Schwend:/112437h4832.45N\\00803.85E^206/080/A=003503 !W75! id213E6DBA -316fpm +0.1rot 9.8dB 6e -4.5kHz gps2x2";
-    //        let test = " !W75! id213E6DBA -316fpm";
-    //        assert_eq!(
-    //            extensions(test),
-    //            Ok((
-    //                "",
-    //                ParsedGPSResolution {
-    //                    horizontal: 3,
-    //                    vertical: 2
-    //                }
-    //            ))
-    //        );
-    //    }
+    #[test]
+    fn extensions_parses_some() {
+        let test = " !W75! id213E6DBA -316fpm";
+        assert_eq!(
+            extensions(test),
+            Ok((
+                "",
+                ParsedExtensions {
+                    position_precision: Some(ParsedPositionPrecision {
+                        latitude: 0.007,
+                        longitude: 0.005
+                    }),
+                    aircraft_id: Some(ParsedAircraftID {
+                        meta: 33,
+                        id: "3E6DBA"
+                    }),
+                    rate: Some(-316),
+                    rot: None,
+                    reception: None,
+                    errors: None,
+                    freq_offset: None,
+                    gps_resolution: None,
+                    unknown: vec![]
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn extensions_parses_out_of_order_multispace() {
+        let test = " id213E6DBA    !W75!  -316fpm   ";
+        assert_eq!(
+            extensions(test),
+            Ok((
+                "   ",
+                ParsedExtensions {
+                    position_precision: Some(ParsedPositionPrecision {
+                        latitude: 0.007,
+                        longitude: 0.005
+                    }),
+                    aircraft_id: Some(ParsedAircraftID {
+                        meta: 33,
+                        id: "3E6DBA"
+                    }),
+                    rate: Some(-316),
+                    rot: None,
+                    reception: None,
+                    errors: None,
+                    freq_offset: None,
+                    gps_resolution: None,
+                    unknown: vec![]
+                }
+            ))
+        );
+    }
+    #[test]
+    fn extensions_parses_all() {
+        let test = " !W75! id213E6DBA -316fpm +0.1rot 9.8dB 6e -4.5kHz gps2x2";
+        assert_eq!(
+            extensions(test),
+            Ok((
+                "",
+                ParsedExtensions {
+                    position_precision: Some(ParsedPositionPrecision {
+                        latitude: 0.007,
+                        longitude: 0.005
+                    }),
+                    aircraft_id: Some(ParsedAircraftID {
+                        meta: 33,
+                        id: "3E6DBA"
+                    }),
+                    rate: Some(-316),
+                    rot: Some(0.1),
+                    reception: Some(9.8),
+                    errors: Some(6),
+                    freq_offset: Some(-4.5),
+                    gps_resolution: Some(ParsedGPSResolution {
+                        horizontal: 2,
+                        vertical: 2
+                    }),
+                    unknown: vec![]
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn extensions_parses_multiple_unknown() {
+        let xxx = "ICA3E6DBA>APRS,qAS,Schwend:/112437h4832.45N\\00803.85E^206/080/A=003503 !W75! id213E6DBA -316fpm +0.1rot 9.8dB 6e -4.5kHz gps2x2";
+        let test = " !W75! id213E6DBA test2 -316fpm +0.1rot 23456 9.8dB 6e -4.5kHz gps2x2   ";
+        assert_eq!(
+            extensions(test),
+            Ok((
+                "   ",
+                ParsedExtensions {
+                    position_precision: Some(ParsedPositionPrecision {
+                        latitude: 0.007,
+                        longitude: 0.005
+                    }),
+                    aircraft_id: Some(ParsedAircraftID {
+                        meta: 33,
+                        id: "3E6DBA"
+                    }),
+                    rate: Some(-316),
+                    rot: Some(0.1),
+                    reception: Some(9.8),
+                    errors: Some(6),
+                    freq_offset: Some(-4.5),
+                    gps_resolution: Some(ParsedGPSResolution {
+                        horizontal: 2,
+                        vertical: 2
+                    }),
+                    unknown: vec!["test2", "23456"]
+                }
+            ))
+        );
+    }
 }
