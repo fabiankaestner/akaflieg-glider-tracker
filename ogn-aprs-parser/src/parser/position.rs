@@ -83,11 +83,14 @@ fn parse_longitude(i: &str) -> IResult<&str, ParsedDegrees> {
 pub type ParsedSymbol<'a> = (&'a str, &'a str);
 
 pub fn parse_position_and_type(i: &str) -> IResult<&str, (ParsedPosition, ParsedSymbol)> {
-    let (str, (lat, sym1, _, long, sym2, heading, speed, altitude)) = tuple((
+    let (str, (lat, sym1, _, long, _, sym2, heading, speed, altitude)) = tuple((
         parse_latitude,
         take(1 as u32),
+        // eat leftover escape tags
         many0(tag("\\")),
         parse_longitude,
+        // eat any escape tags, this symbol should never be a backslash
+        many0(tag("\\")),
         take(1 as u32),
         three_digit_number_slash_terminated,
         three_digit_number_slash_terminated,
