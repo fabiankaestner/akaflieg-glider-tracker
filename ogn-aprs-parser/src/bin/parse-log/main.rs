@@ -21,11 +21,9 @@ fn main() {
         let parsed = OGNStatusMessage::from_str(str, None);
         if let Ok(p) = parsed {
             println!(
-                "{}: {},{}",
-                p.aircraft_id.unwrap_or("NO ID".to_owned()), p.position.latitude, p.position.longitude
+                "[{},{},{}],",
+                p.position.longitude, p.position.latitude, p.position.altitude
             );
-        } else {
-            println!("Parse error.");
         }
     }
 }
