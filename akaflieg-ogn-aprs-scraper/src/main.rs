@@ -3,7 +3,7 @@ use std::time::Duration;
 use std::error::Error;
 use std::{io, str};
 
-use log::{info, warn, error};
+use log::{info, warn, error, debug};
 
 use tokio::net::TcpStream;
 use tokio::time::timeout;
@@ -89,7 +89,7 @@ async fn read(stream: &TcpStream, aprs_tx: &Sender<String>) -> Result<(), Box<dy
             // we've received a message of n characters, log it to InfluxDB
             Ok(n) => {
                 let string_rep = util::format_for_display(&buf);
-                info!("(read {}) {}", n, string_rep);
+                debug!("(read {}) {}", n, string_rep);
                 aprs_tx.send(string_rep).await?;
             }
             // we're not ready to read yet, wait another loop until we can read the next message.
