@@ -7,8 +7,8 @@ use nom::{
 };
 
 use crate::parser::util::{
-    six_digit_number, three_digit_number, three_digit_number_slash_terminated, two_digit_decimal,
-    two_digit_number,
+    six_digit_number, three_digit_number, three_digit_number_slash_terminated,
+    two_digit_number, float
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -22,8 +22,7 @@ pub enum ParsedDirection {
 #[derive(Debug, PartialEq, Clone)]
 pub struct ParsedDegrees {
     pub degrees: u32,
-    pub minutes: u32,
-    pub seconds_decimal: f32,
+    pub minutes: f32,
     pub direction: ParsedDirection,
 }
 
@@ -39,8 +38,7 @@ pub struct ParsedPosition {
 fn parse_latitude(i: &str) -> IResult<&str, ParsedDegrees> {
     let (str, res) = tuple((
         two_digit_number,
-        two_digit_number,
-        two_digit_decimal,
+        float,
         one_of("NS"),
     ))(i)?;
     Ok((
@@ -48,8 +46,7 @@ fn parse_latitude(i: &str) -> IResult<&str, ParsedDegrees> {
         ParsedDegrees {
             degrees: res.0,
             minutes: res.1,
-            seconds_decimal: res.2,
-            direction: match res.3 {
+            direction: match res.2 {
                 'N' => ParsedDirection::North,
                 'S' => ParsedDirection::South,
                 _ => panic!("We got an invalid direction, how did we get here?"),
@@ -61,8 +58,7 @@ fn parse_latitude(i: &str) -> IResult<&str, ParsedDegrees> {
 fn parse_longitude(i: &str) -> IResult<&str, ParsedDegrees> {
     let (str, res) = tuple((
         three_digit_number,
-        two_digit_number,
-        two_digit_decimal,
+        float,
         one_of("WE"),
     ))(i)?;
     Ok((
@@ -70,8 +66,7 @@ fn parse_longitude(i: &str) -> IResult<&str, ParsedDegrees> {
         ParsedDegrees {
             degrees: res.0,
             minutes: res.1,
-            seconds_decimal: res.2,
-            direction: match res.3 {
+            direction: match res.2 {
                 'W' => ParsedDirection::West,
                 'E' => ParsedDirection::East,
                 _ => panic!("We got an invalid direction, how did we get here?"),
@@ -124,8 +119,7 @@ mod tests {
                 "\\008",
                 ParsedDegrees {
                     degrees: 48,
-                    minutes: 32,
-                    seconds_decimal: 0.45,
+                    minutes: 32.45,
                     direction: ParsedDirection::North
                 }
             ))
@@ -141,8 +135,7 @@ mod tests {
                 "^206",
                 ParsedDegrees {
                     degrees: 8,
-                    minutes: 3,
-                    seconds_decimal: 0.85,
+                    minutes: 3.85,
                     direction: ParsedDirection::East
                 }
             ))
@@ -160,14 +153,12 @@ mod tests {
                     ParsedPosition {
                         latitude: ParsedDegrees {
                             degrees: 48,
-                            minutes: 32,
-                            seconds_decimal: 0.45,
+                            minutes: 32.45,
                             direction: ParsedDirection::North
                         },
                         longitude: ParsedDegrees {
                             degrees: 8,
-                            minutes: 3,
-                            seconds_decimal: 0.85,
+                            minutes: 3.85,
                             direction: ParsedDirection::East
                         },
                         heading: 206,

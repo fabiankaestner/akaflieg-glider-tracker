@@ -94,11 +94,12 @@ mod tests {
                 aprs_callsign: "ICA3E6DBA".to_owned(),
                 aprs_path: "APRS,qAS,Schwend".to_owned(),
                 aprs_type: APRSMessageType::PositionWithTimestamp,
-                position: OGNObjectPosition{ latitude: 48.53346, longitude: 8.050127, heading: 206.0, altitude: 1067.7144 },
+                position: OGNObjectPosition{ latitude: 48.54095, longitude: 8.540916, heading: 206.0, altitude: 1067.7144 },
                 velocity: OGNObjectVelocity { horizontal: 41.155556, vertical: Some(-1.60528), rotation: Some(0.0052359877) },
                 aircraft_type: AircraftType::PoweredAircraft,
                 ogn_flags: Some(OGNFlags{ stealth_mode: false, no_tracking_mode: false }),
-                address_type: Some(AddressType::ICAO)
+                address_type: Some(AddressType::ICAO),
+                reception: Some(9.8)
             }
         );
     }

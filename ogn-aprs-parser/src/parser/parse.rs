@@ -63,14 +63,12 @@ mod tests {
                     position: position::ParsedPosition {
                         latitude: position::ParsedDegrees {
                             degrees: 48,
-                            minutes: 32,
-                            seconds_decimal: 0.45,
+                            minutes: 32.45,
                             direction: position::ParsedDirection::North
                         },
                         longitude: position::ParsedDegrees {
                             degrees: 8,
-                            minutes: 3,
-                            seconds_decimal: 0.85,
+                            minutes: 3.85,
                             direction: position::ParsedDirection::East
                         },
                         heading: 206,
@@ -122,14 +120,12 @@ mod tests {
                     position: position::ParsedPosition {
                             latitude: position::ParsedDegrees {
                                 degrees: 48,
-                                minutes: 32,
-                                seconds_decimal: 0.45,
+                                minutes: 32.45,
                                 direction: position::ParsedDirection::North
                             },
                         longitude: position::ParsedDegrees {
                                 degrees: 8,
-                            minutes: 3,
-                            seconds_decimal: 0.85,
+                            minutes: 3.85,
                             direction: position::ParsedDirection::East
                             },
                         heading: 206,
