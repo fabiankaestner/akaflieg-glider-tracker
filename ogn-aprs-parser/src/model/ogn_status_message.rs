@@ -11,16 +11,16 @@ use crate::parser::parse::{parse_str, ParsedAPRSMessage};
 
 #[derive(Debug, PartialEq)]
 pub struct OGNStatusMessage {
-    aircraft_id: Option<String>,
-    timestamp: DateTime<Utc>,
-    aprs_callsign: String,
-    aprs_path: String,
-    aprs_type: APRSMessageType,
-    position: OGNObjectPosition,
-    velocity: OGNObjectVelocity,
-    aircraft_type: AircraftType,
-    ogn_flags: Option<OGNFlags>,
-    address_type: Option<AddressType>,
+    pub aircraft_id: Option<String>,
+    pub timestamp: DateTime<Utc>,
+    pub aprs_callsign: String,
+    pub aprs_path: String,
+    pub aprs_type: APRSMessageType,
+    pub position: OGNObjectPosition,
+    pub velocity: OGNObjectVelocity,
+    pub aircraft_type: AircraftType,
+    pub ogn_flags: Option<OGNFlags>,
+    pub address_type: Option<AddressType>,
 }
 
 impl OGNStatusMessage {
