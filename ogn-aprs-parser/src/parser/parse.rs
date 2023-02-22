@@ -105,7 +105,6 @@ mod tests {
         );
     }
 
-#[test]
     fn parsing_aprs_aircraft_status_message2_works() {
         let test = "ICA3D2F0C>OGFLR,qAS,edfz2:/142313h4956.68N\\00808.73E^260/100/A=001614 !W17! id213D2F0C -197fpm +0.0rot 37.2dB +6.0kHz gps3x4";
         assert_eq!(

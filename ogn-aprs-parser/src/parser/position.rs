@@ -2,6 +2,7 @@ use nom::{
     bytes::complete::{tag, take},
     character::complete::one_of,
     sequence::{preceded, tuple},
+    multi::many0,
     IResult,
 };
 
@@ -82,9 +83,10 @@ fn parse_longitude(i: &str) -> IResult<&str, ParsedDegrees> {
 pub type ParsedSymbol<'a> = (&'a str, &'a str);
 
 pub fn parse_position_and_type(i: &str) -> IResult<&str, (ParsedPosition, ParsedSymbol)> {
-    let (str, (lat, sym1, long, sym2, heading, speed, altitude)) = tuple((
+    let (str, (lat, sym1, _, long, sym2, heading, speed, altitude)) = tuple((
         parse_latitude,
         take(1 as u32),
+        many0(tag("\\")),
         parse_longitude,
         take(1 as u32),
         three_digit_number_slash_terminated,
