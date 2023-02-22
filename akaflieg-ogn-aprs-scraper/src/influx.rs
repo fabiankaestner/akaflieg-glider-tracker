@@ -37,7 +37,7 @@ pub fn transform_aprs(aprs_msg: String) -> Option<impl Stream<Item = DataPoint>>
     let mut builder = DataPoint::builder("aprs").field("message", aprs_msg.clone());
     let parsed =OGNStatusMessage::from_str(&aprs_msg, None);
     if let Ok(p) = parsed  {
-        builder = builder.field("timestamp", p.timestamp.timestamp());
+        builder = builder.timestamp( p.timestamp.timestamp_nanos());
         builder = builder
             .tag("aprs_callsign", p.aprs_callsign)
             .tag("aprs_path", p.aprs_path)
