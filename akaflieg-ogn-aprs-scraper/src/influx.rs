@@ -67,6 +67,9 @@ pub fn transform_aprs(aprs_msg: String) -> Option<impl Stream<Item = DataPoint>>
         if let Some(addr_t) = p.address_type {
             builder = builder.tag("addr_type", format!("{:?}", addr_t));
         }
+        if let Some(reception) = p.reception {
+            builder = builder.field("reception", reception as f64);
+        }
     } else {
         println!("FAILED PARSE: {}", aprs_msg);
         info!("Parse failed.");

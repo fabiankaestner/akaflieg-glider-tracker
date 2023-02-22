@@ -21,6 +21,7 @@ pub struct OGNStatusMessage {
     pub aircraft_type: AircraftType,
     pub ogn_flags: Option<OGNFlags>,
     pub address_type: Option<AddressType>,
+    pub reception: Option<f32>,
 }
 
 impl OGNStatusMessage {
@@ -64,6 +65,7 @@ impl OGNStatusMessage {
             aircraft_type,
             ogn_flags,
             address_type,
+            reception: parsed.extensions.reception
         }
     }
 }
