@@ -2,8 +2,8 @@
     "configurations": [
         {
             "type": "cargo",
-            "name": "run",
-            "cargoArgs": ["run"],
+            "name": "Run Scraper",
+            "cargoArgs": ["run", "--bin", "akaflieg-ogn-aprs-scraper"],
         },
 
     ]

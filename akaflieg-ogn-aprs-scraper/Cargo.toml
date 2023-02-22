@@ -12,3 +12,4 @@ tokio-stream = "*"
 async-stream = "*"
 log = { version = "*", features = ["std"] }
 dotenv = "*"
+ogn-aprs-parser = { path = "../ogn-aprs-parser" }
