@@ -19,7 +19,7 @@ mod util;
 async fn main() -> Result<(), Box<dyn Error>> {
 
     // load environment variables from .env file.
-    dotenv::dotenv()?;
+    dotenv::dotenv().ok();
     let url = dotenv::var("INFLUX_URL")?;
     let org = dotenv::var("INFLUX_ORG")?;
     let token = dotenv::var("INFLUX_TOKEN")?;
