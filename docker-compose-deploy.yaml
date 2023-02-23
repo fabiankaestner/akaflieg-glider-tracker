@@ -1,0 +1,25 @@
+version: '3.6'
+services:
+    influxdb:
+        image: influxdb:2.6.1
+        container_name: influxdb
+        restart: always
+        environment:
+            - INFLUXDB_DB=influx
+            - INFLUXDB_ADMIN_USER=admin
+            - INFLUXDB_ADMIN_PASSWORD=admin
+        ports:
+            - '8086:8086'
+        volumes:
+            - influxdb_data:/var/lib/influxdb
+    scraper:
+        environment:
+            - INFLUX_TOKEN=
+            - INFLUX_ORG=
+            - INFLUX_URL=http://influxdb:8086/
+            - APRS_ADDR=aprs.glidernet.org:14580
+            - APRS_LOGIN_STR=user xxx pass -1 vers xxx 0.0.0 filter b/
+        build:
+            dockerfile: scraper.DOCKERFILE
+volumes:
+    influxdb_data:
