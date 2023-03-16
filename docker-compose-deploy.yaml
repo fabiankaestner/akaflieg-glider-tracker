@@ -11,15 +11,18 @@ services:
         ports:
             - '8086:8086'
         volumes:
-            - influxdb_data:/var/lib/influxdb
+            - influxdb_store:/var/lib/influxdb
     scraper:
+        depends_on:
+            - influxdb
         environment:
-            - INFLUX_TOKEN=
-            - INFLUX_ORG=
+            - INFLUX_TOKEN=HEPtS2BL_jqdCUsbvvgukDvIoX_1JVp9HC2K2REcCjRZeoE9WerSeT6AuZi24bT3ZpDwY0dodlDqtKpSH-JzuA==
+            - INFLUX_ORG=akaflieg
             - INFLUX_URL=http://influxdb:8086/
             - APRS_ADDR=aprs.glidernet.org:14580
-            - APRS_LOGIN_STR=user xxx pass -1 vers xxx 0.0.0 filter b/
+            - APRS_LOGIN_STR=user xxx pass -1 vers xxx 0.0.0 filter b/FLRDDEF2E,FLRDD962D/FLRDDA434/FLRDD832E/FLRDF1465/FLRDD832A/FLRDDEEF7
+
         build:
             dockerfile: scraper.DOCKERFILE
 volumes:
-    influxdb_data:
+    influxdb_store:
