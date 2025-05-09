@@ -1,6 +1,7 @@
 FROM rust:1.86 as builder
 WORKDIR /usr/src/scraper
 COPY . .
+ARG SQLX_OFFLINE=true
 RUN cargo install --path ./akaflieg-ogn-aprs-scraper
 
 FROM debian:bookworm-slim
