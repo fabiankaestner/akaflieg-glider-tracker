@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            ST_X(position::geometry), ST_Y(position::geometry),\n            ST_Z(position::geometry), ST_M(position::geometry)\n        FROM tracks WHERE aircraft_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "st_x",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 1,
+        "name": "st_y",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 2,
+        "name": "st_z",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "st_m",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "b0bb1ead60b7076eecb3984c328f8dcf27a664718c173c85a22a61be91251d94"
+}
