@@ -29,6 +29,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .connect(&database_url)
         .await?;
 
+    sqlx::migrate!("../migrations").run(&pool).await?;
+
     // setup the return channel for APRS messages from the TCP stream;
     // write all arriving messages to influx.
     let (tx, rx) = mpsc::channel::<String>(32);
