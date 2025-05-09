@@ -1,16 +1,16 @@
-version: '3.6'
+version: "3.6"
 services:
-  influxdb:
-    image: influxdb:2.6.1
-    container_name: influxdb
+  timescale:
+    image: timescale/timescaledb-ha:pg17-arm64
+    container_name: timescale
     restart: always
     environment:
-      - INFLUXDB_DB=influx
-      - INFLUXDB_ADMIN_USER=admin
-      - INFLUXDB_ADMIN_PASSWORD=admin
+      - POSTGRES_USER=timescale
+      - POSTGRES_PASSWORD=timescale
+      - POSTGRES_DB=timescale
     ports:
-      - '8086:8086'
+      - "5432:5432"
     volumes:
-      - influxdb_data:/var/lib/influxdb
+      - timescale_data:/var/lib/postgresql/data
 volumes:
-    influxdb_data: {}
+  timescale_data: {}

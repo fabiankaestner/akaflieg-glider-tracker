@@ -1,6 +1,3 @@
 [workspace]
 
-members = [
-    "ogn-aprs-parser",
-    "akaflieg-ogn-aprs-scraper"
-]
+members = ["ogn-aprs-parser", "akaflieg-ogn-aprs-scraper", "web-api"]

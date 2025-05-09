@@ -1,0 +1,20 @@
+[package]
+name = "web-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.8.4", features = ["json"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+tokio-stream = "*"
+sqlx = { version = "0.8", features = [
+    "runtime-tokio",
+    "tls-native-tls",
+    "postgres",
+    "chrono",
+] }
+serde = "1.0.219"
+serde_json = "1.0.140"
+
+[profile.dev.package.sqlx-macros]
+opt-level = 3

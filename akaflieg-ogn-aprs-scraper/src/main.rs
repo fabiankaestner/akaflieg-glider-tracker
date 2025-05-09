@@ -1,41 +1,37 @@
-use std::sync::Arc;
-use std::time::Duration;
 use std::error::Error;
-use std::{io, str};
+use std::time::Duration;
+use std::{env, io, str};
 
-use log::{info, warn, error, debug};
+use log::{error, info, warn};
 
+use sqlx::postgres::PgPoolOptions;
 use tokio::net::TcpStream;
-use tokio::time::timeout;
 use tokio::sync::mpsc::{self, Sender};
+use tokio::time::timeout;
 
-use influxdb2::Client;
-
-mod influx_logger;
-mod influx;
+mod postgres;
 mod util;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-
     // load environment variables from .env file.
     dotenv::dotenv().ok();
-    let url = dotenv::var("INFLUX_URL")?;
-    let org = dotenv::var("INFLUX_ORG")?;
-    let token = dotenv::var("INFLUX_TOKEN")?;
+    env::set_var("RUST_LOG", "trace");
+    pretty_env_logger::init();
 
     let aprs_addr = dotenv::var("APRS_ADDR")?;
     let aprs_login_str = dotenv::var("APRS_LOGIN_STR")?;
 
-
-    // create and init InfluxDB client, and setup the logger.
-    let client = Arc::new(Client::new(url, org, token));
-    influx_logger::InfluxLogger::init(client.clone(), "logs");
+    // create and init postgres client
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://timescale:timescale@localhost/timescale")
+        .await?;
 
     // setup the return channel for APRS messages from the TCP stream;
     // write all arriving messages to influx.
     let (tx, rx) = mpsc::channel::<String>(32);
-    tokio::spawn(influx::write_aprs(client.clone(), "aprs", rx));
+    tokio::spawn(postgres::write_aprs(pool.clone(), rx));
 
     // Main connection loop
     loop {
@@ -49,8 +45,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // Connect to APRS server, log all APRS messages to Influx
-async fn connect(addr: &str, login_str: &str, aprs_tx: &Sender<String>) -> Result<(), Box<dyn Error>> {
-
+async fn connect(
+    addr: &str,
+    login_str: &str,
+    aprs_tx: &Sender<String>,
+) -> Result<(), Box<dyn Error>> {
     // establish a TCP connection to the APRS server.
     let mut stream = TcpStream::connect(addr).await?;
     info!("connected to {:?}", addr);
@@ -89,7 +88,7 @@ async fn read(stream: &TcpStream, aprs_tx: &Sender<String>) -> Result<(), Box<dy
             // we've received a message of n characters, log it to InfluxDB
             Ok(n) => {
                 let string_rep = util::format_for_display(&buf);
-                debug!("(read {}) {}", n, string_rep);
+                info!("(read {}) {}", n, string_rep);
                 aprs_tx.send(string_rep).await?;
             }
             // we're not ready to read yet, wait another loop until we can read the next message.
