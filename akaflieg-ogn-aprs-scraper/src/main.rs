@@ -21,11 +21,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let aprs_addr = dotenv::var("APRS_ADDR")?;
     let aprs_login_str = dotenv::var("APRS_LOGIN_STR")?;
+    let database_url = dotenv::var("DATABASE_URL")?;
 
     // create and init postgres client
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://timescale:timescale@localhost/timescale")
+        .connect(&database_url)
         .await?;
 
     // setup the return channel for APRS messages from the TCP stream;
