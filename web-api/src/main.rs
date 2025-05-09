@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -9,10 +11,12 @@ use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
 use tokio_stream::StreamExt;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn Error>> {
+    let database_url = dotenv::var("DATABASE_URL")?;
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://timescale:timescale@localhost/timescale")
+        .connect(&database_url)
         .await
         .unwrap();
     let app = Router::new()
@@ -22,6 +26,7 @@ async fn main() {
         .with_state(pool);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
+    Ok(())
 }
 
 #[derive(Serialize)]

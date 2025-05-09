@@ -2464,6 +2464,7 @@ name = "web-api"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "dotenv",
  "serde",
  "serde_json",
  "sqlx",

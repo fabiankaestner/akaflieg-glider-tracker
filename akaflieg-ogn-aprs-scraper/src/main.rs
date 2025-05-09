@@ -16,7 +16,6 @@ mod util;
 async fn main() -> Result<(), Box<dyn Error>> {
     // load environment variables from .env file.
     dotenv::dotenv().ok();
-    env::set_var("RUST_LOG", "trace");
     pretty_env_logger::init();
 
     let aprs_addr = dotenv::var("APRS_ADDR")?;
