@@ -7,12 +7,7 @@ edition = "2021"
 axum = { version = "0.8.4", features = ["json"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
 tokio-stream = "*"
-sqlx = { version = "0.8", features = [
-    "runtime-tokio",
-    "tls-native-tls",
-    "postgres",
-    "chrono",
-] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono"] }
 serde = "1.0.219"
 serde_json = "1.0.140"
 dotenv = "*"
